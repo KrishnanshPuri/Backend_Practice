@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirBnB HOme</title>
+    <link rel="stylesheet" href="Home.css">
+    <link rel="stylesheet" href="output.css">
+</head>
+<body>
+    <header>
+     <h1> Here are our registered Homes</h1>
+     
+     </header>
+     <main>
+    <a href="/host/add-home">Add Home</a>
+    <ul>
+        <% homes.forEach(home=>{%>
+            <li>
+                <h2><%= home.houseName %></h2>
+                <p><%= home.location %></p>
+                <p>Price: $<%= home.price %> per night</p>
+            </li>
+        <% }) %>
+
+     </ul>
+    </main>
+</body>
+</html>
