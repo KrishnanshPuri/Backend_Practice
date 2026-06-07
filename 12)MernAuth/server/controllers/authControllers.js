@@ -91,3 +91,85 @@ export const logout = (req,res)=>{
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict"
     }).json({success:true,message:"User logged out successfully"});
 }
+
+export const sendVerifyOtp = async(req,res)=>{
+ try {
+    const {userId}=req.body;
+
+    const user = await User.findById(userId);
+    
+    if(user.isAccountVerified){
+        return res.json({success:false,message:"Account is already verified"});
+    }
+    
+    const otp = String(Math.floor(Math.random()*900000 +100000));
+
+    user.verifyOtp = otp;
+    user.verifyOtpExpireAt = Date.now() + 10*60*1000; // 10 minutes
+    
+    await user.save();
+
+    const mailOptions = {
+        from: process.env.SENDER_EMAIL,
+        to: user.email,
+        subject: "Your Account Verification OTP",
+        text: `Hi ${user.name},\n\nYour OTP for account verification is: ${otp}\nThis OTP is valid for 10 minutes.\n\nBest regards,\nMERN Auth Team`
+      };
+
+      await transporter.sendMail(mailOptions);
+
+      res.json({success:true,message:"OTP sent to your email address"});
+
+} catch (error) {
+    res.json({success:false,message:error.message});
+}
+}
+
+export const verifyEmail = async(req,res)=>{
+  
+    const {userId,otp}=req.body;
+
+    if(!userId || !otp){
+        return res.json({success:false,message:"Please provide all the fields"});
+    }
+
+    try {
+
+        const user = await User.findById(userId);
+
+        if(!user){
+            return res.json({success:false,message:"User does not exist"});
+        }
+
+        
+       if(user.verifyOtp==='' || user.verifyOtp != otp ){
+        return res.json({success:false,message:"Invalid OTP"});
+       }
+
+       if(user.verifyOtpExpireAt < Date.now()){
+        return res.json({success:false,message:"OTP has expired"});
+       }
+     
+       user.isAccountVerified = true;
+       user.verifyOtp = '';
+       user.verifyOtpExpireAt = 0;
+
+         await user.save();
+
+         res.json({success:true,message:"Email verified successfully"});
+
+    } catch (error) {
+        res.json({success:false,message:error.message});
+        
+    }
+
+}
+
+export const isAuthenticated = async(req,res)=>{
+try {
+    
+    return res.json({success:true})
+} catch (error) {
+    res.json({success:false,message:error.message})
+}
+}
