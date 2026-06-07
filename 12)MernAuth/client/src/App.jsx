@@ -6,7 +6,7 @@ import EmailVerify from './pages/EmailVerify'
 import ResetPassword from './pages/ResetPassword';
 const App = () => {
   return (
-    <div className='text-4xl'>
+    <div>
      <Routes>
      <Route path='/' element={<Home/>}/>
      <Route path='/login' element={<Login/>}/>
