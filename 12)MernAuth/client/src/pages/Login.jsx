@@ -4,12 +4,13 @@ import { assets } from '../assets/assets';
 import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AppContent } from '../Context/AppContext';
+import { toast } from 'react-toastify';
 import axios from 'axios'
 const Login = () => {
     const navigate = useNavigate();
 
 
-const { backendUrl,setIsLoggedIn} = useContext(AppContent);
+const { backendUrl,setIsLoggedIn ,getUserData} = useContext(AppContent);
 
     const [state,setState] = useState('Sign-Up');
     const[name,setName]=useState('');
@@ -24,25 +25,27 @@ const { backendUrl,setIsLoggedIn} = useContext(AppContent);
          const {data} =   await axios.post(backendUrl+ '/api/auth/register',{name,email,password})
          if(data.success){
             setIsLoggedIn(true);
+            getUserData();
             navigate('/');
          }
          else{
-            alert(data.message);
+           toast.error(data.message);
          }
         }
         else{
          const {data} =   await axios.post(backendUrl+ '/api/auth/login',{email,password})
          if(data.success){
             setIsLoggedIn(true);
+            getUserData();
             navigate('/');
          }
          else{
-            alert(data.message);
+            toast.error(data.message);
          }
 
         }
     } catch (error) {
-        console.log(error.message);
+                  toast.error(error.message);
         
     }
    }
@@ -74,13 +77,17 @@ const { backendUrl,setIsLoggedIn} = useContext(AppContent);
             className = 'bg-transparent outline-null' type='email' placeholder='Email' required />
          </div>
 
-         <div 
-         onChange={e=>setPassword(e.target.value)}
-         value={password}
-         className='mb-4 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]'>
-            <img src={assets.lock_icon}/>
-            <input className = 'bg-transparent outline-null' type='password' placeholder='Password' required />
-         </div>
+         <div className='mb-4 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]'>
+   <img src={assets.lock_icon} />
+   <input 
+     onChange={e => setPassword(e.target.value)}
+     value={password}
+     className='bg-transparent outline-none' 
+     type='password' 
+     placeholder='Password' 
+     required 
+   />
+</div>
         
           <p onClick={()=>navigate('/forgot-password')} className='mb-4 text-indigo-500 cursor-pointer'>Forgot Password ?</p>
 
