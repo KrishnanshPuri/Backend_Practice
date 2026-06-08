@@ -12,6 +12,7 @@ export const register = async( req,res)=>{
  }
 
   try {
+
  
     const existingUser = await User.findOne({email});
     if(existingUser){
@@ -39,14 +40,14 @@ export const register = async( req,res)=>{
   
   // welcome email :)
 
-  const mailOptions = {
-    from: process.env.SENDER_EMAIL,
-    to: email,
-    subject: "Welcome to our Auth App",
-    text: `Hi ${user.name},\n\nThank you for registering at our MERN Auth App! We're excited to have you on board.\n\nBest regards,\nMERN Auth Team`
-  };
+//   const mailOptions = {
+//     from: process.env.SENDER_EMAIL,
+//     to: email,
+//     subject: "Welcome to our Auth App",
+//     text: `Hi ${user.name},\n\nThank you for registering at our MERN Auth App! We're excited to have you on board.\n\nBest regards,\nMERN Auth Team`
+//   };
 
-  await transporter.sendMail(mailOptions);
+//   await transporter.sendMail(mailOptions);
   
   return res.json({success:true,message:"User registered successfully",user:{name:user.name,email:user.email}});
 
