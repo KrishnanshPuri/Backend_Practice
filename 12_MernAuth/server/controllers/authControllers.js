@@ -1,61 +1,62 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/userMODEL.js";
-import transporter from "../config/nodemailer.js";
 import { EMAIL_VERIFY_TEMPLATE, PASSWORD_RESET_TEMPLATE } from "../config/emailtemplate.js";
 
-export const register = async( req,res)=>{
+export const register = async (req, res) => {
     console.log('in register');
- const {name,email,password} = req.body;
- if(!name || !email || !password){
-    return res.json({success:false,message:"Please fill all the fields"});
- }
-
-  try {
-
- 
-    const existingUser = await User.findOne({email});
-    if(existingUser){
-        return res.json({success:false,message:"User already exists"});
+    const { name, email, password } = req.body;
+    
+    if (!name || !email || !password) {
+        return res.json({ success: false, message: "Please fill all fields" });
     }
 
-   const hashedPassword = await bcrypt.hash(password,10);
+    try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.json({ success: false, message: "User already exists" });
+        }
 
-   const user = new User({
-    name,
-    email,
-    password:hashedPassword
-   });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = new User({ name, email, password: hashedPassword });
+        await user.save();
 
-   await user.save();
-   
-  const token = jwt.sign({id:user._id},process.env.JWT_SECRET,{expiresIn:"7d"});
-  
-  res.cookie("token",token,{
-    httpOnly:true,
-    secure:process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-    maxAge:7*24*60*60*1000
-  })
-  
-  // welcome email :)
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-//   const mailOptions = {
-//     from: process.env.SENDER_EMAIL,
-//     to: email,
-//     subject: "Welcome to our Auth App",
-//     text: `Hi ${user.name},\n\nThank you for registering at our MERN Auth App! We're excited to have you on board.\n\nBest regards,\nMERN Auth Team`
-//   };
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
 
-//   await transporter.sendMail(mailOptions);
-  
-  return res.json({success:true,message:"User registered successfully",user:{name:user.name,email:user.email}});
+        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json',
+                'api-key': process.env.BREVO_API_KEY,
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                sender: { email: process.env.SENDER_EMAIL, name: "Auth App" },
+                to: [{ email: user.email }],
+                subject: "Welcome to our Auth App",
+                textContent: `Hi ${user.name},\n\nThank you for registering! We're excited to have you.\n\nBest,\nAuth Team`
+            })
+        });
 
-  } catch (error) {
-    res.json({success:false,message:error.message});
-  }
+        const data = await response.json();
+        
+        if (!response.ok) {
+            console.log("Brevo API Blocked Us:", data);
+        }
+
+        return res.json({ success: true, message: "User registered", user: { name: user.name, email: user.email } });
+
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
 }
-
 export const login = async(req,res)=>{
      console.log('in login');
     const {email,password} = req.body;
@@ -114,15 +115,30 @@ export const sendVerifyOtp = async(req,res)=>{
     
     await user.save();
 
-    const mailOptions = {
-        from: process.env.SENDER_EMAIL,
-        to: user.email,
-        subject: "Your Account Verification OTP",
-        //text: `Hi ${user.name},\n\nYour OTP for account verification is: ${otp}\nThis OTP is valid for 10 minutes.\n\nBest regards,\nMERN Auth Team`
-        html:EMAIL_VERIFY_TEMPLATE(otp)
-    };
 
-      await transporter.sendMail(mailOptions);
+     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY, 
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: { email: process.env.SENDER_EMAIL, name: "Auth App" },
+        to: [{ email: user.email }],
+        subject: "Your Account Verification OTP",
+        htmlContent: EMAIL_VERIFY_TEMPLATE(otp)
+      })
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+        console.log("Brevo API Blocked Us:", data);
+        return res.json({ success: false, message: "Email API failed to send" });
+    }
+
+    console.log("Brevo Success:", data);
 
       res.json({success:true,message:"OTP sent to your email address"});
 
@@ -203,15 +219,32 @@ export const sendResetOtp = async(req,res)=>{
     
     await user.save();
 
-    const mailOptions = {
-        from: process.env.SENDER_EMAIL,
-        to: user.email,
-        subject: "Password Reset OTP",
-        //text: `Hi ${user.name},\n\nYour OTP for Password Reset is: ${otp}\nThis OTP is valid for 10 minutes.\n\nBest regards,\nMERN Auth Team`
-        html:PASSWORD_RESET_TEMPLATE(otp)
-      };
 
-      await transporter.sendMail(mailOptions);
+     
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY, 
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: { email: process.env.SENDER_EMAIL, name: "MERN Auth App" },
+        to: [{ email: user.email }],
+        subject: "Password Reset OTP",
+        htmlContent: PASSWORD_RESET_TEMPLATE(otp)
+      })
+    });
+
+    const data = await response.json();
+    
+   
+    if (!response.ok) {
+        console.log("Brevo API Blocked Us:", data);
+        return res.json({ success: false, message: "Email API failed to send" });
+    }
+
+    console.log("Brevo Success:", data);
 
       return res.json({success:true,message:"OTP sent to your email address"});
         
