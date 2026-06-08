@@ -14,7 +14,7 @@ connectDB();
 app.use(expresss.json());
 app.use(cookieParser());
 
-const allowedEndpoints = ['http://localhost:5173']
+const allowedEndpoints = ['https://backend-practice-2-s4oa.onrender.com']
 
 
 app.use(cors({origin:allowedEndpoints ,credentials: true}));
