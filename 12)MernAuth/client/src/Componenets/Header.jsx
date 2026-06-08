@@ -15,7 +15,7 @@ const Header = () => {
 </h1>
      <h2 className='text-3xl sm:text-5xl font-semibold mb-4'>Welcome to Our App</h2>
    <p className='mb-8 max-w-md'>Let's have a quick App tour and we will have you up and running in no time</p>
-    <button className='flex items-center gap-2 border border-gray-500 rounded-full px-6 py-2 text-gray-800 hover:bg-gray-100 transition-all'>Get started</button>
+    <button className='flex items-center gap-2 border border-gray-500 rounded-full px-6 py-2 text-gray-800 hover:bg-gray-100 transition-all cursor-pointer'>Get started</button>
     </div>
   );
 };
