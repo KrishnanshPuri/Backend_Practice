@@ -9,9 +9,15 @@ const app = expresss();
 const port = process.env.PORT || 3000;
 connectDB();
 
+
+
 app.use(expresss.json());
 app.use(cookieParser());
-app.use(cors({credentials: true}));
+
+const allowedEndpoints = ['http://localhost:5173']
+
+
+app.use(cors({origin:allowedEndpoints ,credentials: true}));
 
 // API End-Points 
 app.use("/api/auth", authRouter);
