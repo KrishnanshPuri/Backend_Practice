@@ -5,6 +5,7 @@ import transporter from "../config/nodemailer.js";
 import { EMAIL_VERIFY_TEMPLATE, PASSWORD_RESET_TEMPLATE } from "../config/emailtemplate.js";
 
 export const register = async( req,res)=>{
+    console.log('in register');
  const {name,email,password} = req.body;
  if(!name || !email || !password){
     return res.json({success:false,message:"Please fill all the fields"});
@@ -55,6 +56,7 @@ export const register = async( req,res)=>{
 }
 
 export const login = async(req,res)=>{
+     console.log('in login');
     const {email,password} = req.body;
     if(!email || !password){
         return res.json({success:false,message:"Please fill all the fields"});
@@ -85,6 +87,7 @@ export const login = async(req,res)=>{
 }
 
 export const logout = (req,res)=>{
+     console.log('in logout');
     res.clearCookie("token",{
     httpOnly:true,
     secure:process.env.NODE_ENV === "production",
@@ -93,6 +96,7 @@ export const logout = (req,res)=>{
 }
 
 export const sendVerifyOtp = async(req,res)=>{
+     console.log('in sendverifyotp');
  try {
     const {userId}=req.body;
 
@@ -127,7 +131,7 @@ export const sendVerifyOtp = async(req,res)=>{
 }
 
 export const verifyEmail = async(req,res)=>{
-  
+   console.log('in verfyemail');
     const {userId,otp}=req.body;
 
     if(!userId || !otp){
@@ -167,6 +171,7 @@ export const verifyEmail = async(req,res)=>{
 }
 
 export const isAuthenticated = async(req,res)=>{
+     console.log('in isAuthenticated');
 try {
 
     return res.json({success:true})
@@ -176,6 +181,7 @@ try {
 }
 
 export const sendResetOtp = async(req,res)=>{
+     console.log('in sendResetOtp');
     const {email}= req.body;
 
     if(!email){
@@ -214,6 +220,7 @@ export const sendResetOtp = async(req,res)=>{
 }
 
 export const resetPassword = async(req,res)=>{
+     console.log('in resetPassword');
     const {email,otp,newpassword}= req.body;
 
     if(!email||!otp|| !newpassword){
